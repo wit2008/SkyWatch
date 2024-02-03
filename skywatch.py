@@ -32,6 +32,8 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 WATCHLIST_FILE = os.getenv("WATCHLIST_FILE")
 AIRCRAFT_JSON_URI = os.getenv("AIRCRAFT_JSON_URI")
+AIRCRAFT_CEILING = os.getenv("AIRCRAFT_CEILING")
+ALTITUDE_FILTER = os.getenv("ALTITUDE_FILTER")
 
 def load_watchlist():
     watchlist = {}
@@ -90,6 +92,8 @@ def main():
             hex_code = aircraft['hex'].upper()
             flight = aircraft.get('flight', '').strip().upper()
             squawk = aircraft.get('squawk', '')
+            altitude_geom = aircraft.get('alt_geom',0)
+            altitude_baro = aircraft.get('alt_baro',0)
 
             # Alert on specific squawk codes
             if squawk in SQUAWK_MEANINGS and (
@@ -123,18 +127,21 @@ def main():
 
             # Alert on items in the watchlist
             for entry in watchlist:
-                if entry.endswith('*'):
-                    if fnmatch.fnmatch(flight, entry):
-                        if (hex_code not in watchlist_alert_history or
-                                time.time() - watchlist_alert_history[hex_code] >= 3600):
-                            watchlist_alert_history[hex_code] = time.time()
-                            if hex_code in csv_data:
-                                context = csv_data[hex_code]
-                                message = (
-                                    f"Watchlist Alert!\n"
-                                    f"Hex: {hex_code}\n"
-                                    f"Label: {watchlist[entry]}\n"
-                                    f"Flight: {aircraft.get('flight', 'N/A')}\n"
+                if (not ALTITUDE_FILTER or 
+                    (ALTITUDE_FILTER and  int(altitude_geom) <= int(AIRCRAFT_CEILING) and 
+                     int(altitude_baro) <= int(AIRCRAFT_CEILING))):
+                    if entry.endswith('*'):
+                        if fnmatch.fnmatch(flight, entry):
+                            if (hex_code not in watchlist_alert_history or
+                                    time.time() - watchlist_alert_history[hex_code] >= 3600):
+                                watchlist_alert_history[hex_code] = time.time()
+                                if hex_code in csv_data:
+                                    context = csv_data[hex_code]
+                                    message = (
+                                        f"Watchlist Alert!\n"
+                                        f"Hex: {hex_code}\n"
+                                        f"Label: {watchlist[entry]}\n"
+                                        f"Flight: {aircraft.get('flight', 'N/A')}\n"
                                         f"Altitude (GEOM): {aircraft.get('alt_geom', 'N/A')} ft\n"
                                         f"Altitude (Baro): {aircraft.get('alt_baro', 'N/A')} ft\n"
                                         f"Ground Speed: {aircraft.get('gs', 'N/A')} knots\n"
