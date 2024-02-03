@@ -2,10 +2,7 @@ import requests
 import fnmatch
 import time
 import csv
-
-# Enter in your Bot Token and the Chat ID of the chat you want the alerts sent to.
-TELEGRAM_BOT_TOKEN = ""
-TELEGRAM_CHAT_ID = ""
+import os
 
 # Add or remove these as needed
 SQUAWK_MEANINGS = {
@@ -21,10 +18,24 @@ SQUAWK_MEANINGS = {
     "1277": "Search & Rescue"
 }
 
+def load_env_file(file_path=".env"):
+    with open(file_path) as file:
+        for line in file:
+            # Skip comments and empty lines
+            if line.strip() and not line.startswith("#"):
+                key, value = line.strip().split("=", 1)
+                os.environ[key] = value
+
+load_env_file()
+
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+WATCHLIST_FILE = os.getenv("WATCHLIST_FILE")
+AIRCRAFT_JSON_URI = os.getenv("AIRCRAFT_JSON_URI")
 
 def load_watchlist():
     watchlist = {}
-    with open("watchlist.txt", "r") as file:
+    with open(WATCHLIST_FILE, "r") as file:
         for line in file:
             parts = line.split(':', 1)
             if len(parts) == 2:
@@ -45,7 +56,7 @@ def send_telegram_alert(message):
 
 
 def get_aircraft_data():
-    url = "http://adsbexchange.local/tar1090/data/aircraft.json"
+    url = AIRCRAFT_JSON_URI
     response = requests.get(url)
     data = response.json()
     return data['aircraft']
