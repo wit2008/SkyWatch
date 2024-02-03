@@ -135,7 +135,44 @@ def main():
                                     f"Hex: {hex_code}\n"
                                     f"Label: {watchlist[entry]}\n"
                                     f"Flight: {aircraft.get('flight', 'N/A')}\n"
-                                    f"Altitude: {aircraft.get('alt_geom', 'N/A')} ft\n"
+                                        f"Altitude (GEOM): {aircraft.get('alt_geom', 'N/A')} ft\n"
+                                        f"Altitude (Baro): {aircraft.get('alt_baro', 'N/A')} ft\n"
+                                        f"Ground Speed: {aircraft.get('gs', 'N/A')} knots\n"
+                                        f"Track: {aircraft.get('track', 'N/A')}\n"
+                                        f"Operator: {context.get('$Operator', 'N/A')}\n"
+                                        f"Type: {context.get('$Type', 'N/A')}\n"
+                                        f"Image: {context.get('#ImageLink', 'N/A')}"
+                                    )
+                                else:
+                                    message = (
+                                        f"Watchlist Alert!\n"
+                                        f"Hex: {hex_code}\n"
+                                        f"Label: {watchlist[entry]}\n"
+                                        f"Flight: {aircraft.get('flight', 'N/A')}\n"
+                                        f"Altitude: {aircraft.get('alt_geom', 'N/A')} ft\n"
+                                        f"Ground Speed: {aircraft.get('gs', 'N/A')} knots\n"
+                                        f"Track: {aircraft.get('track', 'N/A')}"
+                                    )
+
+                                status_code = send_telegram_alert(message)
+                                if status_code == 200:
+                                    message_lines = message.split('\n')[:3]
+                                    for line in message_lines:
+                                        print(line)
+                                else:
+                                    print(f"Failed to send watchlist alert. Status Code: {status_code}")
+                    elif hex_code == entry or flight == entry:
+                        if hex_code not in watchlist_alert_history or time.time() - watchlist_alert_history[hex_code] >= 3600:
+                            watchlist_alert_history[hex_code] = time.time()
+                            if hex_code in csv_data:
+                                context = csv_data[hex_code]
+                                message = (
+                                    f"Watchlist Alert!\n"
+                                    f"Hex: {hex_code}\n"
+                                    f"Label: {watchlist[entry]}\n"
+                                    f"Flight: {aircraft.get('flight', 'N/A')}\n"
+                                    f"Altitude (GEOM): {aircraft.get('alt_geom', 'N/A')} ft\n"
+                                    f"Altitude (Baro): {aircraft.get('alt_baro', 'N/A')} ft\n"
                                     f"Ground Speed: {aircraft.get('gs', 'N/A')} knots\n"
                                     f"Track: {aircraft.get('track', 'N/A')}\n"
                                     f"Operator: {context.get('$Operator', 'N/A')}\n"
@@ -144,11 +181,11 @@ def main():
                                 )
                             else:
                                 message = (
-                                    f"Watchlist Alert!\n"
-                                    f"Hex: {hex_code}\n"
+                                    f"Watchlist Alert!\nHex: {hex_code}\n"
                                     f"Label: {watchlist[entry]}\n"
                                     f"Flight: {aircraft.get('flight', 'N/A')}\n"
-                                    f"Altitude: {aircraft.get('alt_geom', 'N/A')} ft\n"
+                                    f"Altitude (GEOM): {aircraft.get('alt_geom', 'N/A')} ft\n"
+                                    f"Altitude (Baro): {aircraft.get('alt_baro', 'N/A')} ft\n"
                                     f"Ground Speed: {aircraft.get('gs', 'N/A')} knots\n"
                                     f"Track: {aircraft.get('track', 'N/A')}"
                                 )
@@ -160,40 +197,6 @@ def main():
                                     print(line)
                             else:
                                 print(f"Failed to send watchlist alert. Status Code: {status_code}")
-                elif hex_code == entry or flight == entry:
-                    if hex_code not in watchlist_alert_history or time.time() - watchlist_alert_history[hex_code] >= 3600:
-                        watchlist_alert_history[hex_code] = time.time()
-                        if hex_code in csv_data:
-                            context = csv_data[hex_code]
-                            message = (
-                                f"Watchlist Alert!\n"
-                                f"Hex: {hex_code}\n"
-                                f"Label: {watchlist[entry]}\n"
-                                f"Flight: {aircraft.get('flight', 'N/A')}\n"
-                                f"Altitude: {aircraft.get('alt_geom', 'N/A')} ft\n"
-                                f"Ground Speed: {aircraft.get('gs', 'N/A')} knots\n"
-                                f"Track: {aircraft.get('track', 'N/A')}\n"
-                                f"Operator: {context.get('$Operator', 'N/A')}\n"
-                                f"Type: {context.get('$Type', 'N/A')}\n"
-                                f"Image: {context.get('#ImageLink', 'N/A')}"
-                            )
-                        else:
-                            message = (
-                                f"Watchlist Alert!\nHex: {hex_code}\n"
-                                f"Label: {watchlist[entry]}\n"
-                                f"Flight: {aircraft.get('flight', 'N/A')}\n"
-                                f"Altitude: {aircraft.get('alt_geom', 'N/A')} ft\n"
-                                f"Ground Speed: {aircraft.get('gs', 'N/A')} knots\n"
-                                f"Track: {aircraft.get('track', 'N/A')}"
-                            )
-
-                        status_code = send_telegram_alert(message)
-                        if status_code == 200:
-                            message_lines = message.split('\n')[:3]
-                            for line in message_lines:
-                                print(line)
-                        else:
-                            print(f"Failed to send watchlist alert. Status Code: {status_code}")
 
         time.sleep(30)
 
