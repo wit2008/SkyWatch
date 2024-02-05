@@ -207,7 +207,7 @@ def main():
                             else:
                                 print(f"Failed to send watchlist alert. Status Code: {status_code}")
 
-        time.sleep(SCRIPT_INTERVAL)
+        time.sleep(int(SCRIPT_INTERVAL))
 
 
 if __name__ == "__main__":
