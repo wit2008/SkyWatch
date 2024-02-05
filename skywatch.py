@@ -128,7 +128,8 @@ def main():
             # Alert on items in the watchlist
             for entry in watchlist:
                 if (not ALTITUDE_FILTER or 
-                    (ALTITUDE_FILTER and  int(altitude_geom) <= int(AIRCRAFT_CEILING) and 
+                    (ALTITUDE_FILTER and (int(altitude_geom != 0) and int(altitude_baro != 0)) and 
+                     int(altitude_geom) <= int(AIRCRAFT_CEILING) and 
                      int(altitude_baro) <= int(AIRCRAFT_CEILING))):
                     if entry.endswith('*'):
                         if fnmatch.fnmatch(flight, entry):
