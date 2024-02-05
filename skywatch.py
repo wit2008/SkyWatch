@@ -34,6 +34,7 @@ WATCHLIST_FILE = os.getenv("WATCHLIST_FILE")
 AIRCRAFT_JSON_URI = os.getenv("AIRCRAFT_JSON_URI")
 AIRCRAFT_CEILING = os.getenv("AIRCRAFT_CEILING")
 ALTITUDE_FILTER = os.getenv("ALTITUDE_FILTER")
+SCRIPT_INTERVAL = os.getenv("SCRIPT_INTERVAL")
 
 def load_watchlist():
     watchlist = {}
@@ -206,7 +207,7 @@ def main():
                             else:
                                 print(f"Failed to send watchlist alert. Status Code: {status_code}")
 
-        time.sleep(30)
+        time.sleep(SCRIPT_INTERVAL)
 
 
 if __name__ == "__main__":
