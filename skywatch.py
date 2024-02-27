@@ -48,7 +48,7 @@ LOGGING = int(os.getenv("LOGGING"))
 
 def load_watchlist():
     watchlist = {}
-    with open(WATCHLIST_FILE, "r") as file:
+    with open(WATCHLIST_FILE, "r", encoding="utf-8") as file:
         for line in file:
             parts = line.split(':', 1)
             if len(parts) == 2:
@@ -77,7 +77,7 @@ def get_aircraft_data():
 
 def load_csv_data(filename):
     csv_data = {}
-    with open(filename, "r") as file:
+    with open(filename, "r", encoding="utf-8") as file:
         reader = csv.DictReader(file)
         for row in reader:
             hex_code = row['$ICAO']
