@@ -3,6 +3,7 @@ import fnmatch
 import time
 import csv
 import os
+import json
 
 from math import radians, sin, cos, sqrt, atan2
 
@@ -34,6 +35,7 @@ load_env_file()
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+TELEGRAM_ENABLED = int(os.getenv("TELEGRAM_ENABLED"))
 WATCHLIST_FILE = os.getenv("WATCHLIST_FILE")
 AIRCRAFT_JSON_URI = os.getenv("AIRCRAFT_JSON_URI")
 AIRCRAFT_CEILING = int(os.getenv("AIRCRAFT_CEILING"))
@@ -44,6 +46,8 @@ DISTANCE_ALERT = float(os.getenv("DISTANCE_ALERT"))
 HOME_LAT = float(os.getenv("HOME_LAT"))
 HOME_LON = float(os.getenv("HOME_LON"))
 LOGGING = int(os.getenv("LOGGING"))
+TOC_NOTIFICATIONS = int(os.getenv("TOC_NOTIFICATIONS"))
+TOC_NOTIFICATIONS_URL = os.getenv("TOC_NOTIFICATIONS_URL")
 
 
 def load_watchlist():
@@ -65,6 +69,24 @@ def send_telegram_alert(message):
         'text': message,
     }
     response = requests.get(telegram_url, params=params)
+    return response.status_code
+
+
+def send_toc_notification(message):
+    message = message.replace('\n', '<br>')
+    message = message.replace('Watchlist Alert!<br>', '')
+
+    params = {
+        'title': 'Skywatch Alert',
+        'text': message,
+        'category': 'ADS-B',
+    }
+
+    headers = {'Content-Type': 'application/json'}
+
+    response = requests.post(TOC_NOTIFICATIONS_URL,
+                             headers=headers, data=json.dumps(params))
+
     return response.status_code
 
 
@@ -187,14 +209,25 @@ def main():
                         f"Ground Speed: {aircraft.get('gs', 'N/A')} knots\nTrack: {aircraft.get('track', 'N/A')}"
                     )
 
-                status_code = send_telegram_alert(message)
-                if status_code == 200:
-                    message_lines = message.split('\n')[:3]
-                    for line in message_lines:
-                        print(line) if LOGGING == 1 else None
-                else:
-                    print(
-                        f"Failed to send squawk alert. Status Code: {status_code}")
+                if TOC_NOTIFICATIONS == 1:
+                    status_code = send_toc_notification(message)
+                    if status_code == 200:
+                        message_lines = message.split('\n')[:3]
+                        for line in message_lines:
+                            print(line) if LOGGING == 1 else None
+                    else:
+                        print(
+                            f"Failed to send squawk alert. Status Code: {status_code}")
+
+                if TELEGRAM_ENABLED == 1:
+                    status_code = send_telegram_alert(message)
+                    if status_code == 200:
+                        message_lines = message.split('\n')[:3]
+                        for line in message_lines:
+                            print(line) if LOGGING == 1 else None
+                    else:
+                        print(
+                            f"Failed to send squawk alert. Status Code: {status_code}")
 
             # Alert on items in the watchlist
             for entry in watchlist:
@@ -233,14 +266,28 @@ def main():
                                         f"Track: {aircraft.get('track', 'N/A')}"
                                     )
 
-                                status_code = send_telegram_alert(message)
-                                if status_code == 200:
-                                    message_lines = message.split('\n')[:3]
-                                    for line in message_lines:
-                                        print(line) if LOGGING == 1 else None
-                                else:
-                                    print(
-                                        f"Failed to send watchlist alert. Status Code: {status_code}")
+                                if TOC_NOTIFICATIONS == 1:
+                                    status_code = send_toc_notification(
+                                        message)
+                                    if status_code == 200:
+                                        message_lines = message.split('\n')[:3]
+                                        for line in message_lines:
+                                            print(
+                                                line) if LOGGING == 1 else None
+                                    else:
+                                        print(
+                                            f"Failed to send watchlist alert. Status Code: {status_code}")
+
+                                if TELEGRAM_ENABLED == 1:
+                                    status_code = send_telegram_alert(message)
+                                    if status_code == 200:
+                                        message_lines = message.split('\n')[:3]
+                                        for line in message_lines:
+                                            print(
+                                                line) if LOGGING == 1 else None
+                                    else:
+                                        print(
+                                            f"Failed to send watchlist alert. Status Code: {status_code}")
                 elif hex_code == entry or flight == entry:
                     print(
                         f'Matched Hex: {hex_code} Label: {watchlist[entry]}') if LOGGING == 1 else None
@@ -274,14 +321,25 @@ def main():
                                     f"Track: {aircraft.get('track', 'N/A')}"
                                 )
 
-                            status_code = send_telegram_alert(message)
-                            if status_code == 200:
-                                message_lines = message.split('\n')[:3]
-                                for line in message_lines:
-                                    print(line) if LOGGING == 1 else None
-                            else:
-                                print(
-                                    f"Failed to send watchlist alert. Status Code: {status_code}")
+                            if TOC_NOTIFICATIONS == 1:
+                                status_code = send_toc_notification(message)
+                                if status_code == 200:
+                                    message_lines = message.split('\n')[:3]
+                                    for line in message_lines:
+                                        print(line) if LOGGING == 1 else None
+                                else:
+                                    print(
+                                        f"Failed to send watchlist alert. Status Code: {status_code}")
+
+                            if TELEGRAM_ENABLED == 1:
+                                status_code = send_telegram_alert(message)
+                                if status_code == 200:
+                                    message_lines = message.split('\n')[:3]
+                                    for line in message_lines:
+                                        print(line) if LOGGING == 1 else None
+                                else:
+                                    print(
+                                        f"Failed to send watchlist alert. Status Code: {status_code}")
 
         time.sleep(int(SCRIPT_INTERVAL))
 
