@@ -46,8 +46,9 @@ DISTANCE_ALERT = float(os.getenv("DISTANCE_ALERT"))
 HOME_LAT = float(os.getenv("HOME_LAT"))
 HOME_LON = float(os.getenv("HOME_LON"))
 LOGGING = int(os.getenv("LOGGING"))
-TOC_NOTIFICATIONS = int(os.getenv("TOC_NOTIFICATIONS"))
-TOC_NOTIFICATIONS_URL = os.getenv("TOC_NOTIFICATIONS_URL")
+NTFY_NOTIFICATIONS = int(os.getenv("NTFY_NOTIFICATIONS"))
+NTFY_NOTIFICATIONS_URL = os.getenv("NTFY_NOTIFICATIONS_URL")
+NTFY_TOKEN = os.getenv("NTFY_TOKEN")
 
 
 def load_watchlist():
@@ -72,20 +73,14 @@ def send_telegram_alert(message):
     return response.status_code
 
 
-def send_toc_notification(message):
-    message = message.replace('\n', '<br>')
-    message = message.replace('Watchlist Alert!<br>', '')
+def send_NTFY_notification(message):
+    # message = message.replace('\n', '<br>')
+    # message = message.replace('Watchlist Alert!<br>', '')
 
-    params = {
-        'title': 'Skywatch Alert',
-        'text': message,
-        'category': 'ADS-B',
-    }
+    headers = {'Authorization': f'Bearer {NTFY_TOKEN}'}
 
-    headers = {'Content-Type': 'application/json'}
-
-    response = requests.post(TOC_NOTIFICATIONS_URL,
-                             headers=headers, data=json.dumps(params))
+    response = requests.post(NTFY_NOTIFICATIONS_URL,
+                             headers=headers, data=message)
 
     return response.status_code
 
@@ -209,8 +204,8 @@ def main():
                         f"Ground Speed: {aircraft.get('gs', 'N/A')} knots\nTrack: {aircraft.get('track', 'N/A')}"
                     )
 
-                if TOC_NOTIFICATIONS == 1:
-                    status_code = send_toc_notification(message)
+                if NTFY_NOTIFICATIONS == 1:
+                    status_code = send_NTFY_notification(message)
                     if status_code == 200:
                         message_lines = message.split('\n')[:3]
                         for line in message_lines:
@@ -266,8 +261,8 @@ def main():
                                         f"Track: {aircraft.get('track', 'N/A')}"
                                     )
 
-                                if TOC_NOTIFICATIONS == 1:
-                                    status_code = send_toc_notification(
+                                if NTFY_NOTIFICATIONS == 1:
+                                    status_code = send_NTFY_notification(
                                         message)
                                     if status_code == 200:
                                         message_lines = message.split('\n')[:3]
@@ -321,8 +316,8 @@ def main():
                                     f"Track: {aircraft.get('track', 'N/A')}"
                                 )
 
-                            if TOC_NOTIFICATIONS == 1:
-                                status_code = send_toc_notification(message)
+                            if NTFY_NOTIFICATIONS == 1:
+                                status_code = send_NTFY_notification(message)
                                 if status_code == 200:
                                     message_lines = message.split('\n')[:3]
                                     for line in message_lines:
